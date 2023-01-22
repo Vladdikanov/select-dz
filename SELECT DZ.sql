@@ -14,18 +14,18 @@ join track t on album.album_id = t.album_id
 group by album.name;
 --все исполнители которые не выпустили альбомы 2017 году
 select artist.name from artist
+where artist.name not in (select distinct artist.name from artist
 left join album_artist aa  on artist.artist_id = aa.artist_id
 left join album a on a.album_id = aa.album_id
-where not a.year = 2017;
+where a.year = 2017);
 -- названия альбомов где,есть треки FFDP
-select m.name from mixtape m
+select distinct m.name from mixtape m
 join mixtape_track mt on m.mixtape_id = mt.mixtape_id
 join track t on mt.track_id = t.track_id 
 join album a on t.album_id = a.album_id
 join album_artist aa on a.album_id = aa.album_id
 join artist a2 on aa.artist_id = a2.artist_id
-where a2.name = 'FFDP'
-group by m.name;
+where a2.name = 'FFDP';
 
 --название альбомов где учавствуют исполнители более одного жанра
 select album.name, count(*) from album
@@ -50,6 +50,11 @@ where t.duration = (select min(duration) from track);
 select album.name, count(*) from album
 join track t on album.album_id = t.album_id
 group by album.name
-having count(*) = (select max(count(*)) from album);
-
+having count(*)  = (
+	select count(*) from album
+	join track t on album.album_id = t.album_id
+	group by album.name
+	order by count(*)
+	limit 1
+);
 
